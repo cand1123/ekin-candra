@@ -140,7 +140,9 @@ if ($type === 'harian') {
     isiTtd($xml, $ttdTanggal, $user);
 
     // Simpan
-    $folder = dirname(__DIR__, 2) . '/storage/output-word'; if (!is_dir($folder)) mkdir($folder, 0777, true);
+    $folder = dirname(__DIR__, 2) . '/storage/output-word';
+    if (!is_dir($folder)) { @mkdir($folder, 0777, true); }
+    if (!is_dir($folder) || !is_writable($folder)) { $folder = sys_get_temp_dir(); }
     $tg = date('Ymd', strtotime($lap['tanggal']));
     $outDocx = $folder."/Laporan_Harian_ASN_{$tg}_{$laporanId}.docx";
     saveDocx($tplPath, $xml, $outDocx);
@@ -162,7 +164,7 @@ if ($type === 'harian') {
 else {
     $namaBulan = ['','Januari','Februari','Maret','April','Mei','Juni','Juli','Agustus','September','Oktober','November','Desember'][$bulan];
     $stmt = $mysqli->prepare('SELECT l.id, l.tanggal, l.uraian_kegiatan, l.hasil, l.jam_mulai, l.jam_selesai, l.rhk_id,
-                                     r.nama_rhk, r.uraian_rhk
+                                     r.nama_rhk, r.indikator AS uraian_rhk
                               FROM laporan_harian l
                               LEFT JOIN rencana_hasil_kerja r ON r.id=l.rhk_id
                               WHERE l.user_id=? AND MONTH(l.tanggal)=? AND YEAR(l.tanggal)=?
@@ -249,7 +251,9 @@ else {
     }
 
     // Simpan
-    $folder = dirname(__DIR__, 2) . '/storage/output-word'; if (!is_dir($folder)) mkdir($folder, 0777, true);
+    $folder = dirname(__DIR__, 2) . '/storage/output-word';
+    if (!is_dir($folder)) { @mkdir($folder, 0777, true); }
+    if (!is_dir($folder) || !is_writable($folder)) { $folder = sys_get_temp_dir(); }
     $outDocx = $folder."/Rekap_Bulanan_ASN_{$namaBulan}_{$tahun}.docx";
     saveDocx($tplPath, $xml, $outDocx);
 

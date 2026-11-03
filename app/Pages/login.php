@@ -64,11 +64,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
                 $provider = $user['auth_provider'] ?? 'local';
                 if ($user && $provider !== 'google' && !empty($user['password']) && password_verify($password, $user['password'])) {
-                    session_regenerate_id(true);
-                    $_SESSION['user_id'] = $user['id'];
-                    $_SESSION['username'] = $user['username'];
-                    header('Location: dashboard.php');
-                    exit;
+                    if (!asn_begin_user_session($user['id'], $user['username'] ?? '')) {
+                        $error = 'Login berhasil, tetapi sesi tidak tersimpan. Muat ulang halaman lalu coba lagi.';
+                    } else {
+                        header('Cache-Control: no-store, no-cache, must-revalidate');
+                        header('Location: dashboard.php');
+                        exit;
+                    }
                 } else {
                     $error = 'Username atau password salah. Atau akun ini login menggunakan Google.';
                 }
@@ -160,7 +162,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     }
 
                     if (!empty($userId)) {
-                        session_regenerate_id(true);
                         $unameStmt = $mysqli->prepare('SELECT username FROM users WHERE id = ? LIMIT 1');
                         $unameFinal = '';
                         if ($unameStmt) {
@@ -171,10 +172,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                             $unameStmt->close();
                         }
 
-                        $_SESSION['user_id'] = $userId;
-                        $_SESSION['username'] = $unameFinal ?: 'user_' . $userId;
-                        header('Location: dashboard.php');
-                        exit;
+                        if (!asn_begin_user_session($userId, $unameFinal ?: ('user_' . $userId))) {
+                            $error = 'Login berhasil, tetapi sesi tidak tersimpan. Muat ulang halaman lalu coba lagi.';
+                        } else {
+                            header('Cache-Control: no-store, no-cache, must-revalidate');
+                            header('Location: dashboard.php');
+                            exit;
+                        }
                     } elseif (empty($error)) {
                         $error = 'Login Google gagal. Silakan coba lagi atau masuk dengan username/password.';
                     }

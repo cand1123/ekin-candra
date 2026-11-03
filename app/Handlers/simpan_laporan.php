@@ -121,19 +121,6 @@ try {
         $stmt->close();
     }
 
-    $uploadsDir = dirname(__DIR__, 2) . '/public/uploads/bukti/';
-    if (!is_dir($uploadsDir)) {
-        if (!@mkdir($uploadsDir, 0777, true)) {
-            throw new Exception('Folder unggah bukti tidak dapat dibuat.');
-        }
-    }
-    if (!is_writable($uploadsDir)) {
-        @chmod($uploadsDir, 0777);
-        if (!is_writable($uploadsDir)) {
-            throw new Exception('Folder unggah bukti tidak dapat ditulis (izin akses).');
-        }
-    }
-
     $allowedExt = ['jpg' => 'jpg', 'jpeg' => 'jpg', 'png' => 'png'];
     $bukti = $_FILES['bukti'] ?? null;
     $hasFiles = false;
@@ -208,15 +195,12 @@ try {
 
                 $ext = $detected === 'image/png' ? 'png' : 'jpg';
                 $namaBaru = 'bukti_' . $newId . '_' . $uid . '_' . date('YmdHis') . '_' . $i . '_' . uniqid('', true) . '.' . $ext;
-                $dest = $uploadsDir . $namaBaru;
-
-                if (!move_uploaded_file($tmp, $dest)) {
-                    $uploadErrors[] = '"' . htmlspecialchars($orig) . '": gagal memindahkan berkas ke folder tujuan.';
+                $pathRel = asn_store_upload($tmp, 'uploads/bukti/' . $namaBaru, $detected);
+                if ($pathRel === false) {
+                    $uploadErrors[] = '"' . htmlspecialchars($orig) . '": gagal menyimpan berkas.'
+                        . (asn_use_remote_storage() ? '' : ' Folder unggahan tidak dapat ditulis.');
                     continue;
                 }
-                @chmod($dest, 0644);
-
-                $pathRel = 'uploads/bukti/' . $namaBaru;
 
                 if ($BK_HAS_USER_ID && $BK_HAS_META) {
                     $stmtI = $mysqli->prepare('INSERT INTO bukti_kegiatan (laporan_id, user_id, nama_file, path_file, mime_type, ukuran_file) VALUES (?,?,?,?,?,?)');
@@ -239,7 +223,7 @@ try {
                 }
 
                 if (!$stmtI->execute()) {
-                    @unlink($dest);
+                    asn_delete_stored($pathRel);
                     $stmtI->close();
                     throw new Exception('Gagal menyimpan metadata bukti: ' . $mysqli->error);
                 }

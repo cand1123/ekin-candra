@@ -1,8 +1,10 @@
 {
   "version": 2,
+  "installCommand": "echo skip-node-install",
   "functions": {
     "api/index.php": {
-      "runtime": "vercel-php@0.8.0"
+      "runtime": "vercel-php@0.8.0",
+      "excludeFiles": "{node_modules/**,.agents/**,.trae/**,docs/**,.git/**}"
     }
   },
   "routes": [

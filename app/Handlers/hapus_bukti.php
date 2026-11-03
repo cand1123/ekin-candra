@@ -14,8 +14,7 @@ $bukti = $stmt->get_result()->fetch_assoc();
 $stmt->close();
 
 if ($bukti) {
-    $path = dirname(__DIR__, 2) . '/public/' . $bukti['path_file'];
-    if (file_exists($path)) @unlink($path);
+    asn_delete_stored($bukti['path_file']);
     $stmt = $mysqli->prepare('DELETE FROM bukti_kegiatan WHERE id=?');
     $stmt->bind_param('i', $id);
     $stmt->execute();

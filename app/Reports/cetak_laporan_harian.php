@@ -143,13 +143,10 @@ if ($laporan_ids) {
 }
 
 function imgToBase64($relPath) {
-    $full = dirname(__DIR__, 2) . '/public/' . ltrim($relPath, '/\\');
-    if (!file_exists($full) || !is_file($full)) return '';
-    $ext = strtolower(pathinfo($full, PATHINFO_EXTENSION));
-    $mime = $ext === 'png' ? 'image/png' : 'image/jpeg';
-    $data = @file_get_contents($full);
-    if ($data === false) return '';
-    return 'data:' . $mime . ';base64,' . base64_encode($data);
+    if (!function_exists('asn_read_stored_bytes')) return '';
+    $got = asn_read_stored_bytes($relPath);
+    if (!$got || $got['data'] === '') return '';
+    return 'data:' . $got['mime'] . ';base64,' . base64_encode($got['data']);
 }
 
 $tahun_laporan = $filter_tahun ?: (int)date('Y', strtotime($filter_tanggal ?: 'now'));

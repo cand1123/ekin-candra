@@ -11,8 +11,7 @@ $stmt = $mysqli->prepare('SELECT b.path_file FROM bukti_kegiatan b JOIN laporan_
 $stmt->bind_param('ii', $id, $uid); $stmt->execute();
 $res = $stmt->get_result();
 while ($r = $res->fetch_assoc()) {
-    $path = dirname(__DIR__, 2) . '/public/' . $r['path_file'];
-    if (file_exists($path)) @unlink($path);
+    asn_delete_stored($r['path_file']);
 }
 $stmt->close();
 

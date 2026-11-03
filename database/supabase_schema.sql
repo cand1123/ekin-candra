@@ -138,3 +138,14 @@ VALUES
      '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi')
 ON CONFLICT (username) DO NOTHING;
 
+-- Sesi login untuk Vercel (filesystem serverless tidak menyimpan session PHP)
+CREATE TABLE IF NOT EXISTS public.php_sessions (
+    id VARCHAR(128) PRIMARY KEY,
+    data TEXT NOT NULL,
+    expires_at TIMESTAMPTZ NOT NULL
+);
+CREATE INDEX IF NOT EXISTS idx_php_sessions_expires ON public.php_sessions (expires_at);
+
+-- Foto bukti di Vercel disimpan di Supabase Storage, bucket publik "bukti".
+-- Aplikasi membuat bucket itu otomatis bila SUPABASE_SECRET_KEY terisi.
+

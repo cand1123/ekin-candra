@@ -1,0 +1,7 @@
+node_modules
+.git
+.agents
+.trae
+docs
+storage/logs
+storage/output-word

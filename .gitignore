@@ -1,0 +1,12 @@
+.env
+.env.local
+node_modules/
+vendor/
+.agents/
+.trae/
+.vercel/
+storage/logs/
+storage/output-word/
+node_modules/
+vendor/
+.env

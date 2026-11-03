@@ -20,7 +20,9 @@ if ($is_local) {
     error_reporting(E_ALL & ~E_NOTICE & ~E_DEPRECATED);
     ini_set('display_errors', 0);
     ini_set('log_errors', 1);
-    ini_set('error_log', LOG_PATH . '/error.log');
+    if (defined('LOG_PATH') && is_dir(LOG_PATH) && is_writable(LOG_PATH)) {
+        ini_set('error_log', LOG_PATH . '/error.log');
+    }
 }
 
 // Google OAuth Client ID

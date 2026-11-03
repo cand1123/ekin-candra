@@ -1,14 +1,8 @@
 <?php
 require_once dirname(__DIR__) . '/helpers/session.php';
 
-$_SESSION = [];
-session_destroy();
+asn_end_user_session();
 
-$params = session_get_cookie_params();
-setcookie(session_name(), '', time() - 42000,
-    $params['path'], $params['domain'],
-    $params['secure'], $params['httponly']
-);
-
+header('Cache-Control: no-store, no-cache, must-revalidate');
 header('Location: login.php');
 exit;

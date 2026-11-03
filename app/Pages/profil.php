@@ -57,15 +57,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $allowed = ['image/jpeg' => 'jpg', 'image/jpg' => 'jpg', 'image/png' => 'png'];
                 if (isset($allowed[$type]) && $size <= 2 * 1024 * 1024) {
                     $ext = $allowed[$type];
-                    $uploadsDir = dirname(__DIR__, 2) . '/public/assets/images/';
-                    if (!is_dir($uploadsDir)) @mkdir($uploadsDir, 0777, true);
                     $namaBaru = 'profil_' . $uid . '_' . time() . '.' . $ext;
-                    $dest = $uploadsDir . $namaBaru;
-                    if (move_uploaded_file($tmp, $dest)) {
-                        if ($fotoPath && file_exists(dirname(__DIR__, 2) . '/public/' . $fotoPath) && basename($fotoPath) !== $namaBaru) {
-                            @unlink(dirname(__DIR__, 2) . '/public/' . $fotoPath);
+                    $stored = asn_store_upload($tmp, 'assets/images/' . $namaBaru, $type);
+                    if ($stored !== false) {
+                        if ($fotoPath && $fotoPath !== $stored) {
+                            asn_delete_stored($fotoPath);
                         }
-                        $fotoPath = 'assets/images/' . $namaBaru;
+                        $fotoPath = $stored;
                     }
                 }
             }
@@ -109,8 +107,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $stmtB->bind_param('i', $uid); $stmtB->execute();
             $resB = $stmtB->get_result();
             while ($rB = $resB->fetch_assoc()) {
-                $pathBerkas = dirname(__DIR__, 2) . '/public/' . $rB['path_file'];
-                if (!empty($rB['path_file']) && file_exists($pathBerkas)) { @unlink($pathBerkas); }
+                if (!empty($rB['path_file'])) { asn_delete_stored($rB['path_file']); }
             }
             $stmtB->close();
         }
@@ -189,8 +186,15 @@ $totalSemuaData = $totalLaporan + $totalBukti + $totalRHK + $totalAksi + $totalC
                     <div class="md-form-section">
                         <div class="md-form-section__title"><i class="bi bi-image" aria-hidden="true"></i> Foto Profil</div>
                         <div class="d-flex align-items-center gap-3 md-mb-3">
-                            <?php if (!empty($user['foto']) && file_exists(dirname(__DIR__, 2) . '/public/' . $user['foto'])): ?>
-                                <img src="<?= htmlspecialchars($user['foto']) ?>" alt="Foto Profil" class="rounded-circle"
+                            <?php
+                            $fotoUrl = (string)($user['foto'] ?? '');
+                            $fotoAda = $fotoUrl !== '' && (
+                                preg_match('#^https?://#i', $fotoUrl)
+                                || is_file(dirname(__DIR__, 2) . '/public/' . $fotoUrl)
+                            );
+                            ?>
+                            <?php if ($fotoAda): ?>
+                                <img src="<?= htmlspecialchars($fotoUrl) ?>" alt="Foto Profil" class="rounded-circle"
                                      style="width: 72px; height: 72px; object-fit: cover; border:1px solid var(--md-border);">
                             <?php else: ?>
                                 <div class="rounded-circle d-inline-flex align-items-center justify-content-center"
