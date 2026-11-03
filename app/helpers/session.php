@@ -1,7 +1,30 @@
 <?php
+if (ob_get_level() === 0) {
+    ob_start();
+}
+
+$asnHost = strtolower((string)($_SERVER['HTTP_HOST'] ?? ''));
+$asnOnVercel = getenv('VERCEL') === '1' || (isset($_SERVER['VERCEL']) && (string)$_SERVER['VERCEL'] === '1');
+$asnLocal = !$asnOnVercel && (
+    $asnHost === ''
+    || $asnHost === 'localhost'
+    || strpos($asnHost, 'localhost:') === 0
+    || strpos($asnHost, '127.0.0.1') === 0
+    || strpos($asnHost, '192.168.') === 0
+    || strpos($asnHost, '10.') === 0
+    || substr($asnHost, -5) === '.test'
+    || substr($asnHost, -10) === '.localhost'
+);
+if (!$asnLocal) {
+    error_reporting(E_ALL & ~E_NOTICE & ~E_DEPRECATED);
+    ini_set('display_errors', '0');
+    ini_set('log_errors', '1');
+}
+unset($asnHost, $asnOnVercel, $asnLocal);
+
 require_once dirname(__DIR__) . '/Config/database.php';
 
-class AsnPgSession
+class AsnPgSession implements SessionHandlerInterface, SessionIdInterface, SessionUpdateTimestampHandlerInterface
 {
     private $db;
     private static $lastError = '';
@@ -38,22 +61,22 @@ class AsnPgSession
         return (bool)preg_match('/^[A-Za-z0-9,-]{16,128}$/', $id);
     }
 
-    public function createSid()
+    public function create_sid(): string
     {
         return session_create_id();
     }
 
-    public function open($path, $name)
+    public function open(string $path, string $name): bool
     {
         return $this->link() !== false;
     }
 
-    public function close()
+    public function close(): bool
     {
         return true;
     }
 
-    public function validateId($id)
+    public function validateId(string $id): bool
     {
         $db = $this->link();
         if (!$db || !$this->validId($id)) {
@@ -67,7 +90,7 @@ class AsnPgSession
         return $res !== false && pg_num_rows($res) > 0;
     }
 
-    public function read($id)
+    public function read(string $id): string|false
     {
         $db = $this->link();
         if (!$db || !$this->validId($id)) {
@@ -85,7 +108,7 @@ class AsnPgSession
         return '';
     }
 
-    public function write($id, $data)
+    public function write(string $id, string $data): bool
     {
         $db = $this->link();
         if (!$db || !$this->validId($id)) {
@@ -108,7 +131,7 @@ class AsnPgSession
         return true;
     }
 
-    public function updateTimestamp($id, $data)
+    public function updateTimestamp(string $id, string $data): bool
     {
         $db = $this->link();
         if (!$db || !$this->validId($id)) {
@@ -131,7 +154,7 @@ class AsnPgSession
         return true;
     }
 
-    public function destroy($id)
+    public function destroy(string $id): bool
     {
         $db = $this->link();
         if (!$db) {
@@ -141,7 +164,7 @@ class AsnPgSession
         return $res !== false;
     }
 
-    public function gc($max_lifetime)
+    public function gc(int $max_lifetime): int|false
     {
         $db = $this->link();
         if (!$db) {
@@ -173,7 +196,7 @@ function asn_request_is_https(): bool
     return $onVercel && !$local;
 }
 
-if (session_status() === PHP_SESSION_NONE) {
+if (!headers_sent() && session_status() === PHP_SESSION_NONE) {
     $lifetime = 43200;
     ini_set('session.use_cookies', '1');
     ini_set('session.use_only_cookies', '1');
@@ -194,17 +217,8 @@ if (session_status() === PHP_SESSION_NONE) {
 
     if (asn_pg_connect()) {
         $handler = new AsnPgSession();
-        session_set_save_handler(
-            array($handler, 'open'),
-            array($handler, 'close'),
-            array($handler, 'read'),
-            array($handler, 'write'),
-            array($handler, 'destroy'),
-            array($handler, 'gc'),
-            array($handler, 'createSid'),
-            array($handler, 'validateId'),
-            array($handler, 'updateTimestamp')
-        );
+        $GLOBALS['asn_pg_session_handler'] = $handler;
+        session_set_save_handler($handler, true);
         register_shutdown_function('session_write_close');
     } else {
         $sessPath = session_save_path();

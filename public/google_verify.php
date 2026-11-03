@@ -62,7 +62,6 @@ function google_verify_id_token($idToken, $expectedClientId) {
 
     $signedContent = $headerB64 . '.' . $payloadB64;
     $ok = openssl_verify($signedContent, $signature, $publicKey, 'sha256WithRSAEncryption');
-    openssl_free_key($publicKey);
 
     return ($ok === 1) ? $payload : false;
 }
