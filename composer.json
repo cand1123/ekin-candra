@@ -1,0 +1,13 @@
+{
+    "config": {
+        "platform": {
+            "php": "7.3.33"
+        },
+        "audit": {
+            "block-insecure": false
+        }
+    },
+    "require": {
+        "dompdf/dompdf": "^1.2"
+    }
+}

@@ -1,0 +1,10 @@
+Options -Indexes
+Require all granted
+AddType image/jpeg .jpg .jpeg
+AddType image/png .png
+AddType image/svg+xml .svg
+<FilesMatch "\.(php|phtml|php3|php4|php5|phps|pl|py|jsp|asp|sh|cgi|exe)$">
+    Order Allow,Deny
+    Deny from all
+</FilesMatch>
+php_flag engine off

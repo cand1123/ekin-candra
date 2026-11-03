@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="1024" height="768" viewBox="0 0 1024 768">
+  <defs>
+    <linearGradient id="g" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="rgb(240,246,255)"/>
+      <stop offset="100%" stop-color="rgb(220,232,255)"/>
+    </linearGradient>
+  </defs>
+  <rect width="1024" height="768" fill="url(#g)"/>
+  <rect x="40" y="40" width="944" height="688" fill="none" stroke="rgb(220,53,69)" stroke-width="10" rx="24"/>
+  <rect x="80" y="80" width="864" height="160" fill="rgba(255,255,255,.82)" rx="20"/>
+  <circle cx="140" cy="160" r="56" fill="rgb(220,53,69)"/>
+  <text x="140" y="180" font-size="64" font-weight="bold" text-anchor="middle" fill="#fff" font-family="Arial, Helvetica, sans-serif">38</text>
+  <text x="220" y="145" font-size="30" font-weight="700" fill="#084298" font-family="Arial, Helvetica, sans-serif">15/09/2026 - Pengayaan Olimpiade Sains Siswa Kelas 6</text>
+  <text x="220" y="185" font-size="22" fill="#0d6efd" font-family="Arial, Helvetica, sans-serif">BUKTI KEGIATAN ASN — placeholder</text>
+  <text x="220" y="218" font-size="18" fill="#475569" font-family="Arial, Helvetica, sans-serif">Sekolah Rakyat Terintegrasi 1 Kalimantan Barat</text>
+  <path d="M120 460 h640 v180 h-640 z" fill="rgb(220,53,69)" opacity="0.33428571428571"/>
+  <path d="M180 520 h280 v80 h-280 z" fill="rgb(220,53,69)" opacity="0.51285714285714"/>
+  <path d="M540 520 h200 v80 h-200 z" fill="rgb(220,53,69)" opacity="0.62"/>
+  <path d="M220 640 h600 v40 h-600 z" fill="rgb(220,53,69)" opacity="0.19142857142857"/>
+  <path d="M220 700 h480 v40 h-480 z" fill="rgb(220,53,69)" opacity="0.15571428571429"/>
+  <g transform="translate(1024-200, 568) rotate(-18)">
+    <circle cx="0" cy="0" r="84" fill="none" stroke="rgb(220,53,69)" stroke-width="4"/>
+    <text x="0" y="-18" text-anchor="middle" font-size="18" font-weight="800" fill="rgb(220,53,69)" font-family="Arial, Helvetica, sans-serif">DIBUKTIKAN</text>
+    <text x="0" y="12" text-anchor="middle" font-size="14" fill="rgb(220,53,69)" font-family="Arial, Helvetica, sans-serif">DUMMY FOTO</text>
+  </g>
+</svg>

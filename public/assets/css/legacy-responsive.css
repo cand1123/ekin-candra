@@ -1,0 +1,1269 @@
+/* ============================================================
+   RESPONSIVE BREAKPOINTS - Formal Pemerintahan Modern
+   PRIORITAS UTAMA: NAMA CLASS STATE SELECTOR TIDAK BOLEH DIUBAH
+   AGAR JS app.js (TIDAK DIUBAH) TETAP BERJALAN TANPA ERROR
+   ============================================================ */
+
+/* ============================================================
+   SIDEBAR COLLAPSE MANUAL (dekstop & tablet besar ≥ 992px)
+   ============================================================ */
+@media (min-width: 992px) {
+    /* SELECTOR NAMA TETAP SAMA: body.sidebar-collapsed — JANGAN DIUBAH! */
+    body.sidebar-collapsed {
+        --asn-sidebar-width: 84px;
+    }
+
+    body.sidebar-collapsed .sidebar {
+        width: var(--asn-sidebar-width);
+        padding: 1rem 0.5rem;
+    }
+
+    body.sidebar-collapsed .sidebar-section-label,
+    body.sidebar-collapsed .sidebar-footer {
+        display: none;
+    }
+
+    body.sidebar-collapsed .sidebar-menu .nav-link {
+        justify-content: center;
+        padding: 0.7rem 0;
+        border-left: 1px solid transparent !important;
+    }
+
+    body.sidebar-collapsed .sidebar-menu .nav-link span:not(.badge) {
+        display: none;
+    }
+
+    body.sidebar-collapsed .sidebar-menu .nav-link i {
+        margin: 0 auto;
+        font-size: 18px;
+    }
+
+    body.sidebar-collapsed .sidebar-menu .nav-link.active {
+        background: var(--asn-soft-blue);
+        position: relative;
+    }
+
+    body.sidebar-collapsed .sidebar-menu .nav-link.active::after {
+        display: none;
+    }
+}
+
+/* ================== LARGE DESKTOP (> 1400px) ================== */
+@media (min-width: 1400px) {
+    .main-content {
+        padding: 2rem 2.25rem 3rem;
+    }
+}
+
+/* ================== TABLET BESAR (≤ 1199.98px)
+   Sidebar auto compact icon-only (84px)
+   ============================================================ */
+@media (max-width: 1199.98px) and (min-width: 992px) {
+    :root {
+        --asn-sidebar-width: 84px;
+    }
+
+    .topbar-toggle {
+        display: inline-flex;
+    }
+
+    .sidebar {
+        width: var(--asn-sidebar-width);
+        padding: 1rem 0.5rem;
+    }
+
+    .sidebar-section-label,
+    .sidebar-footer {
+        display: none;
+    }
+
+    .sidebar-menu .nav-link {
+        justify-content: center;
+        padding: 0.7rem 0;
+        border-left: 1px solid transparent !important;
+    }
+
+    .sidebar-menu .nav-link span:not(.badge) {
+        display: none;
+    }
+
+    .sidebar-menu .nav-link i {
+        margin: 0 auto;
+        font-size: 18px;
+    }
+
+    .sidebar-menu .nav-link.active {
+        background: var(--asn-soft-blue);
+    }
+
+    .sidebar-menu .nav-link.active::after {
+        display: none;
+    }
+
+    .stat-card {
+        padding: 1rem;
+        min-height: 98px;
+    }
+
+    .stat-icon {
+        width: 50px;
+        height: 50px;
+        font-size: 1.35rem;
+    }
+
+    .stat-text h3.fw-bold {
+        font-size: 1.55rem !important;
+    }
+
+    .main-content {
+        padding: 1.5rem;
+    }
+}
+
+/* ================== MOBILE & TABLET KECIL (≤ 991.98px)
+   Sidebar off-canvas slide-in dari kiri
+   ============================================================ */
+@media (max-width: 991.98px) {
+    .topbar-toggle {
+        display: inline-flex;
+    }
+
+    .topbar {
+        padding: 0 0.9rem;
+        height: 68px;
+    }
+
+    .topbar-brand .brand-text {
+        display: none;
+    }
+
+    .topbar-brand .brand-logo {
+        width: 38px;
+        height: 38px;
+        font-size: 18px;
+    }
+
+    .topbar-notif {
+        width: 38px;
+        height: 38px;
+        font-size: 16px;
+    }
+
+    .topbar-user .user-text {
+        display: none !important;
+    }
+
+    .topbar-user {
+        padding: 0.25rem;
+    }
+
+    .topbar-user .avatar {
+        width: 34px;
+        height: 34px;
+        font-size: 13px;
+    }
+
+    .app-wrapper {
+        flex-direction: column;
+    }
+
+    /* CRITICAL RESET: hapus offset margin-left sidebar di mobile */
+    .main-content {
+        margin-left: 0 !important;
+    }
+
+    .topbar-left {
+        width: auto !important;
+        border-right: 0 !important;
+        padding-left: 0 !important;
+        gap: 0.5rem;
+    }
+
+    .sidebar {
+        position: fixed;
+        top: 68px;
+        left: -100%;
+        bottom: 0;
+        width: min(86%, 340px);
+        max-width: 340px;
+        height: calc(100vh - 68px);
+        z-index: 1040;
+        transition: left 0.32s cubic-bezier(0.4, 0, 0.2, 1);
+        box-shadow: 12px 0 36px -18px rgba(15, 23, 42, 0.22);
+        background: var(--asn-card);
+        overflow-y: auto;
+        border-right: 1px solid var(--asn-border);
+    }
+
+    /* SELECTOR NAMA TETAP SAMA: body.sidebar-open — JANGAN DIUBAH! */
+    body.sidebar-open {
+        overflow: hidden;
+    }
+
+    body.sidebar-open .sidebar {
+        left: 0;
+    }
+
+    #sidebarBackdrop {
+        opacity: 0;
+        visibility: hidden;
+        position: fixed;
+        inset: 68px 0 0 0;
+        background: rgba(15, 23, 42, 0.45);
+        backdrop-filter: blur(2px);
+        z-index: 1039;
+        transition: opacity 0.2s ease, visibility 0.2s ease;
+    }
+
+    body.sidebar-open #sidebarBackdrop {
+        opacity: 1;
+        visibility: visible;
+    }
+
+    .main-content {
+        width: 100%;
+        padding: 0.9rem 0.9rem 10rem;
+    }
+
+    .page-header {
+        margin-bottom: 1.1rem;
+        gap: 1rem;
+    }
+
+    .page-header h2.fw-bold {
+        font-size: 1.45rem !important;
+    }
+
+    .page-header p.text-muted {
+        font-size: 13.5px !important;
+    }
+
+    .stat-card {
+        padding: 1rem;
+        min-height: 94px;
+    }
+
+    .stat-icon {
+        width: 48px;
+        height: 48px;
+        font-size: 1.3rem;
+    }
+
+    .stat-text .text-muted {
+        font-size: 11px !important;
+    }
+
+    .stat-text h3.fw-bold {
+        font-size: 1.55rem !important;
+    }
+
+    .card-header { padding: 1rem 1.05rem; }
+    .card-body   { padding: 1.05rem; }
+    .card-footer { padding: 0.8rem 1.05rem; }
+
+    .laporan-filter-wrapper {
+        padding: 1rem !important;
+    }
+
+    .laporan-summary {
+        gap: 1.5rem !important;
+    }
+
+    .laporan-summary h3.fw-bold {
+        font-size: 1.5rem;
+    }
+
+    .modal-content {
+        margin: 0.5rem;
+    }
+    .modal-header { padding: 1.1rem 1.1rem 0.5rem; }
+    .modal-body   { padding: 0.5rem 1.1rem 1rem; }
+    .modal-footer { padding: 0.6rem 1.1rem 1.15rem; }
+
+    .modal-lg,
+    .modal-xl {
+        max-width: calc(100% - 1rem);
+        margin: 0.5rem auto;
+    }
+
+    #previewIframe {
+        height: 480px !important;
+    }
+
+    .table thead th,
+    .table tbody td {
+        padding: 0.7rem 0.75rem !important;
+        font-size: 13px;
+    }
+
+    .table-responsive {
+    }
+
+    .btn {
+        padding: 0.52rem 0.95rem;
+        font-size: 13.5px;
+    }
+    .btn-sm {
+        padding: 0.32rem 0.62rem;
+        font-size: 12.5px;
+    }
+
+    .btn-icon-action {
+        width: 32px !important;
+        height: 32px !important;
+        font-size: 13px !important;
+    }
+
+    .table-actions {
+        gap: 0.5rem !important;
+    }
+
+    .filter-toggle .btn {
+        font-size: 12.5px !important;
+        padding: 0.45rem 0.5rem !important;
+    }
+
+    .alert {
+        padding: 0.8rem 0.9rem;
+        font-size: 13.5px;
+    }
+
+    .form-label {
+        font-size: 13px;
+    }
+
+    .form-control,
+    .form-select {
+        min-height: 44px;
+        font-size: 14px;
+        padding: 0 0.8rem;
+    }
+
+    textarea.form-control {
+        min-height: 100px;
+        padding: 0.7rem 0.8rem;
+    }
+
+    .image-preview-item {
+        width: 82px;
+        height: 82px;
+    }
+}
+
+/* ================== MOBILE KECIL (≤ 767.98px)
+   ============================================================ */
+@media (max-width: 767.98px) {
+    .row.g-3 > [class*="col-"],
+    .row.g-4 > [class*="col-"] {
+        padding: 0.35rem;
+    }
+    .row.g-3,
+    .row.g-4 {
+        --bs-gutter-x: 0.5rem;
+        --bs-gutter-y: 0.5rem;
+    }
+
+    .topbar-brand i {
+        width: 32px;
+        height: 32px;
+        font-size: 15px;
+    }
+
+    .sidebar {
+        width: min(88%, 340px);
+    }
+
+    .stat-card {
+        flex-direction: row;
+        padding: 0.9rem 1rem;
+        min-height: 86px;
+        gap: 0.85rem;
+    }
+
+    .stat-icon {
+        width: 46px;
+        height: 46px;
+        font-size: 1.2rem;
+    }
+
+    .stat-text .text-muted {
+        font-size: 10.5px !important;
+    }
+
+    .stat-text h3.fw-bold {
+        font-size: 1.4rem !important;
+    }
+
+    .page-header {
+        margin-bottom: 1.1rem;
+    }
+    .page-header h2.fw-bold {
+        font-size: 1.35rem !important;
+    }
+    .page-header p.text-muted {
+        font-size: 12.5px !important;
+    }
+
+    .table { font-size: 12.5px; }
+    .table thead th {
+        font-size: 11px !important;
+        padding: 0.65rem 0.6rem !important;
+    }
+    .table tbody td {
+        padding: 0.6rem 0.65rem !important;
+        font-size: 12.5px;
+    }
+
+    .tanggal-cell {
+        min-width: 72px;
+        padding: 0.4rem 0.5rem;
+    }
+    .tanggal-cell .tanggal-hari  { font-size: 1.05rem; }
+    .tanggal-cell .tanggal-bulan {
+        font-size: 10px;
+    }
+
+    .badge-indicator {
+        max-width: 170px;
+        padding: 0.35rem 0.55rem !important;
+        font-size: 11.5px !important;
+    }
+
+    .uraian-cell .fw-semibold { font-size: 13px; }
+
+    .time-cell {
+        padding: 0.3rem 0.5rem;
+        font-size: 11.5px !important;
+    }
+
+    .badge-qty {
+        min-width: 30px;
+        min-height: 30px;
+        font-size: 12px !important;
+        padding: 0.25rem 0.55rem !important;
+    }
+
+    .badge-bukti {
+        padding: 0.25rem 0.55rem !important;
+        min-width: 36px;
+        min-height: 30px;
+        font-size: 11.5px !important;
+    }
+
+    .modal-dialog  { margin: 0.25rem auto; }
+    .modal-content {
+        margin: 0.4rem 0.55rem !important;
+        padding: 0 !important;
+        border: 0 !important;
+        box-shadow: 0 24px 60px -18px rgba(15, 23, 42, 0.35) !important;
+    }
+    .modal-header {
+        padding: 1.1rem 1rem 0.5rem !important;
+        border-bottom: 1px solid var(--asn-border-light) !important;
+    }
+    .modal-header .modal-title {
+        font-size: 1.05rem !important;
+        letter-spacing: -0.01em;
+    }
+    .modal-header .btn-close {
+        width: 32px !important;
+        height: 32px !important;
+        padding: 0 !important;
+        background-color: #F8FAFC !important;
+        border: 1px solid var(--asn-border) !important;
+    }
+    .modal-body {
+        padding: 0.9rem 1rem 1rem !important;
+    }
+    .modal-footer {
+        padding: 0.6rem 1rem 1.05rem !important;
+        border-top: 1px solid var(--asn-border-light) !important;
+        background: #FAFBFC !important;
+    }
+
+    #previewIframe { height: 380px !important; }
+
+    .image-preview-item { width: 74px; height: 74px; }
+
+    .badge {
+        font-size: 11.5px;
+        padding: 0.3rem 0.55rem;
+    }
+
+    .btn {
+        padding: 0.48rem 0.85rem;
+        font-size: 13px;
+    }
+
+    .form-label {
+        font-size: 12.5px;
+        font-weight: 600;
+        color: var(--asn-dark-navy);
+        margin-bottom: 6px !important;
+        display: block;
+    }
+
+    .form-label > span.text-danger {
+        font-weight: 700;
+    }
+
+    .form-control,
+    .form-select {
+        min-height: 48px;
+        font-size: 14px;
+        border: 1px solid var(--asn-border) !important;
+        background: #FFFFFF !important;
+        padding-left: 14px !important;
+        padding-right: 14px !important;
+        box-shadow: none !important;
+    }
+    textarea.form-control {
+        min-height: 120px !important;
+        padding: 12px 14px !important;
+    }
+    .modal-body .form-control,
+    .modal-body .form-select {
+        min-height: 50px !important;
+    }
+    .modal-body .row.g-3 {
+        --bs-gutter-x: 0.85rem;
+        --bs-gutter-y: 0.85rem;
+    }
+
+    .auth-card {
+        padding: 1.75rem 1.25rem !important;
+    }
+
+    .auth-logo-icon {
+        width: 56px !important;
+        height: 56px !important;
+        font-size: 28px !important;
+    }
+
+    .report-header-plain h5.fw-bold {
+        font-size: 1.05rem;
+    }
+}
+
+/* ================== EXTRA SMALL (≤ 575.98px)
+   ============================================================ */
+@media (max-width: 575.98px) {
+    .sidebar { width: min(90%, 340px); }
+
+    .stat-card {
+        flex-direction: column;
+        align-items: flex-start;
+        text-align: left;
+        padding: 1rem;
+        min-height: auto;
+        gap: 0.6rem;
+    }
+
+    .stat-icon {
+        margin-right: 0 !important;
+    }
+
+    .stat-text h3.fw-bold {
+        font-size: 1.45rem !important;
+        margin-top: 0.15rem;
+    }
+
+    .report-header-plain {
+        flex-direction: column !important;
+        align-items: flex-start !important;
+        gap: 0.75rem;
+    }
+
+    .laporan-summary {
+        flex-direction: column !important;
+        gap: 0.8rem !important;
+    }
+
+    .btn {
+        padding: 0.45rem 0.8rem;
+        font-size: 13px;
+    }
+
+    .image-preview-item { width: 68px; height: 68px; }
+    .image-preview-remove {
+        top: 3px;
+        right: 3px;
+        width: 20px;
+        height: 20px;
+    }
+
+    .modal-dialog-centered {
+        min-height: calc(100% - 0.5rem);
+    }
+}
+
+/* ============================================================
+   FILTER BAR — Responsive
+   ============================================================ */
+@media (max-width: 991.98px) {
+    .filter-bar {
+        padding: 0.5rem 0 1rem 0;
+        margin-bottom: 1.5rem;
+    }
+    .filter-bar form {
+        flex-direction: column !important;
+        align-items: stretch !important;
+        gap: 0.65rem !important;
+    }
+    .filter-bar .filter-item {
+        width: 100%;
+        flex-direction: row;
+        align-items: center;
+    }
+    .filter-bar .filter-label {
+        min-width: 70px;
+        font-size: 0.85rem;
+    }
+    .filter-bar .filter-item .form-select,
+    .filter-bar .filter-item .form-control {
+        flex: 1;
+        min-width: 0 !important;
+    }
+    .filter-bar .filter-actions {
+        margin-left: 0 !important;
+        width: 100%;
+        flex-direction: row-reverse;
+    }
+    .filter-bar .filter-actions .btn {
+        flex: 1;
+    }
+    .table thead th,
+    .table tbody td {
+        padding: 0.7rem 0.5rem !important;
+        font-size: 13px;
+    }
+    .table thead th {
+        font-size: 10.5px !important;
+    }
+    .table-actions {
+        gap: 0.35rem !important;
+        flex-wrap: wrap;
+    }
+    .table-actions .btn-icon-action {
+        font-size: 12.5px !important;
+    }
+    .modal-700 {
+        max-width: calc(100% - 1rem) !important;
+    }
+}
+
+@media (max-width: 575.98px) {
+    .filter-bar .filter-item {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 0.3rem;
+    }
+    .filter-bar .filter-label {
+        min-width: auto;
+        font-size: 0.82rem;
+    }
+    .filter-bar .filter-item .form-select,
+    .filter-bar .filter-item .form-control {
+        width: 100%;
+    }
+    .table { font-size: 12px; }
+    .table thead th {
+        padding: 0.6rem 0.4rem !important;
+    }
+    .table tbody td {
+        padding: 0.55rem 0.4rem !important;
+        font-size: 12px;
+    }
+}
+
+/* ============================================================
+   DASHBOARD MOBILE REDESIGN — Responsive Override
+   ============================================================ */
+@media (max-width: 575.98px) {
+    /* ============== FONT SCALE -20% KECIL DARI DEFAULT (USER REQUEST) ============= */
+    .dash-mobile-hello        { font-size: 10px !important; }
+    .dash-mobile-title        { font-size: 0.95rem !important; line-height: 1.2; }
+    .dash-section-title       { font-size: 0.88rem !important; }
+    .dash-section-sub         { font-size: 10.5px !important; }
+    .dash-link-all            { font-size: 10.5px !important; }
+    .dash-profile-name        { font-size: 0.88rem !important; }
+    .dash-profile-meta        { font-size: 10px !important; line-height: 1.55 !important; }
+    .dash-profile-meta i      { font-size: 10px !important; }
+    .dash-date-chip           { font-size: 10.5px !important; padding: 6px 10px !important; }
+    .dash-date-chip i         { font-size: 12px !important; }
+
+    .dash-profile-card {
+        padding: 14px 13px 13px;
+    }
+    .dash-avatar-xl {
+        width: 52px;
+        height: 52px;
+        min-width: 52px;
+        font-size: 17px;
+    }
+    .dash-profile-arrow {
+        display: none !important;
+    }
+
+    .dash-stat-grid {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 9px;
+    }
+    .dash-stat-card {
+        padding: 11px 10px 10px;
+    }
+    .dash-stat-icon {
+        width: 36px;
+        height: 36px;
+        font-size: 15px;
+        margin-bottom: 6px;
+    }
+    .dash-stat-num {
+        font-size: 1.18rem !important;
+        margin-bottom: 3px;
+    }
+    .dash-stat-label {
+        font-size: 10px !important;
+        margin-bottom: 6px;
+    }
+    .dash-stat-mini-chart {
+        height: 20px;
+        gap: 2.5px;
+        margin-bottom: 6px;
+    }
+    .dash-stat-mini-badge {
+        font-size: 9px !important;
+        padding: 2px 7px;
+        margin-bottom: 6px;
+    }
+
+    .dash-menu-grid {
+        grid-template-columns: repeat(3, 1fr);
+        gap: 7px;
+    }
+    .dash-menu-card {
+        padding: 10px 5px;
+    }
+    .dash-menu-icon {
+        width: 38px;
+        height: 38px;
+        font-size: 16px;
+        margin-bottom: 6px;
+    }
+    .dash-menu-title {
+        font-size: 10px !important;
+    }
+    .dash-menu-sub {
+        display: none;
+    }
+
+    .dash-cta-primary {
+        padding: 12px 12px;
+        gap: 10px;
+    }
+    .dash-cta-icon {
+        width: 40px;
+        height: 40px;
+        min-width: 40px;
+        font-size: 17px;
+    }
+    .dash-cta-arrow {
+        width: 30px;
+        height: 30px;
+        font-size: 13px;
+    }
+    .dash-cta-title {
+        font-size: 0.85rem !important;
+    }
+    .dash-cta-sub {
+        font-size: 10px !important;
+        margin-top: 2px;
+    }
+
+    .dash-recent-item {
+        padding: 10px 10px;
+        gap: 9px;
+    }
+    .dash-recent-date {
+        min-width: 42px;
+        padding: 4px 3px;
+    }
+    .dash-recent-day {
+        font-size: 0.82rem !important;
+    }
+    .dash-recent-month {
+        font-size: 8.5px !important;
+        margin-top: 3px;
+    }
+    .dash-recent-illus {
+        display: none;
+    }
+    .dash-recent-title {
+        font-size: 10.5px !important;
+        line-height: 1.35 !important;
+    }
+    .dash-recent-chip {
+        padding: 2px 7px !important;
+        font-size: 8.5px !important;
+    }
+    .dash-recent-chip i { font-size: 8px !important; }
+    .dash-recent-badge {
+        padding: 2px 7px !important;
+        font-size: 8.5px !important;
+    }
+    .dash-mini-btn {
+        width: 26px;
+        height: 26px;
+        font-size: 11px !important;
+    }
+
+    .dash-empty-state {
+        padding: 22px 16px 20px;
+    }
+    .dash-empty-illus { width: 64px; height: 64px; }
+    .dash-empty-illus i { font-size: 28px; }
+    .dash-empty-title { font-size: 0.85rem !important; }
+    .dash-empty-desc  { font-size: 10.5px !important; }
+
+    .dash-floating-btn {
+        padding: 10px 16px;
+        font-size: 11px !important;
+    }
+    .dash-floating-btn i { font-size: 14px !important; }
+    .dash-bottom-nav .dash-nav-item span {
+        font-size: 8.5px !important;
+        line-height: 1.1;
+    }
+    .dash-bottom-nav .dash-nav-item i {
+        font-size: 15px !important;
+    }
+}
+
+@media (max-width: 767.98px) {
+    .dash-mobile {
+        padding-bottom: 0;
+    }
+    .dash-recent-section {
+        padding-bottom: 5rem !important;
+    }
+    .main-content {
+        padding-bottom: 11rem !important;
+    }
+    /* FONT SCALE -20% KHUSUS MOBILE (USER REQUEST) */
+    .dash-mobile-hello        { font-size: 10.5px !important; }
+    .dash-mobile-title        { font-size: 0.98rem !important; line-height: 1.22; }
+    .dash-section-title       { font-size: 0.92rem !important; }
+    .dash-section-sub         { font-size: 11px !important; }
+    .dash-link-all            { font-size: 11px !important; }
+    .dash-profile-name        { font-size: 0.92rem !important; }
+    .dash-profile-meta        { font-size: 10.5px !important; }
+    .dash-profile-meta i      { font-size: 10.5px !important; }
+    .dash-date-chip           { font-size: 11px !important; }
+    .dash-date-chip i         { font-size: 12.5px !important; }
+    .dash-stat-num            { font-size: 1.28rem !important; }
+    .dash-stat-label          { font-size: 10.5px !important; }
+    .dash-stat-mini-badge     { font-size: 9.5px !important; }
+    .dash-menu-title          { font-size: 10.5px !important; }
+    .dash-menu-sub            { font-size: 9px !important; }
+    .dash-cta-title           { font-size: 0.88rem !important; }
+    .dash-cta-sub             { font-size: 10.5px !important; }
+    .dash-recent-title        { font-size: 11px !important; }
+    .dash-recent-day          { font-size: 0.9rem !important; }
+    .dash-recent-month        { font-size: 9px !important; }
+    .dash-recent-chip         { font-size: 9px !important; }
+    .dash-recent-badge        { font-size: 9px !important; }
+    .dash-empty-title         { font-size: 0.9rem !important; }
+    .dash-empty-desc          { font-size: 11px !important; }
+
+    .dash-floating-pill {
+        bottom: 92px !important;
+        width: calc(100% - 2.2rem) !important;
+        max-width: 520px;
+    }
+    .dash-floating-btn {
+        width: 100%;
+        box-shadow:
+            0 14px 34px -14px rgba(37,99,235,0.72),
+            0 2px 4px rgba(15, 23, 42, 0.06) !important;
+        padding: 13px 19px !important;
+        font-size: 12px !important;
+    }
+    .dash-floating-btn i { font-size: 15px !important; }
+    .dash-bottom-nav {
+        height: calc(68px + env(safe-area-inset-bottom, 0)) !important;
+        padding-top: 6px !important;
+        padding-bottom: calc(6px + env(safe-area-inset-bottom, 0)) !important;
+    }
+    .dash-bottom-nav .dash-nav-item {
+        padding: 4px 2px 2px !important;
+        gap: 2.5px !important;
+    }
+    .dash-bottom-nav .dash-nav-item i {
+        font-size: 16px !important;
+    }
+    .dash-bottom-nav .dash-nav-item span {
+        font-size: 9px !important;
+        line-height: 1.1;
+    }
+}
+
+/* ================== FLOATING + BOTTOM NAV (≤ 991.98px tablet/mobile)
+   Pastikan tidak tumpang tindih dengan recent section
+   ============================================================ */
+@media (max-width: 991.98px) {
+    .dash-floating-pill {
+        bottom: 92px;
+        width: calc(100% - 2.2rem);
+        max-width: 520px;
+    }
+    .dash-floating-btn {
+        width: 100%;
+        padding: 14px 22px;
+        box-shadow:
+            0 14px 34px -14px rgba(37,99,235,0.72),
+            0 2px 4px rgba(15, 23, 42, 0.06);
+    }
+    .dash-bottom-nav {
+        height: calc(70px + env(safe-area-inset-bottom, 0));
+        padding-top: 7px;
+        padding-bottom: calc(7px + env(safe-area-inset-bottom, 0));
+    }
+    .dash-bottom-nav .dash-nav-item {
+        padding: 4px 2px 2px;
+        gap: 3px;
+    }
+    .dash-bottom-nav .dash-nav-item i { font-size: 17px; }
+    .dash-bottom-nav .dash-nav-item span {
+        font-size: 10px;
+        line-height: 1.15;
+    }
+}
+
+/* ============================================================
+   PRINT — hide sidebar/topbar/action agar tetap bersih formal
+   ============================================================ */
+@media print {
+    .topbar,
+    .sidebar,
+    .action-group,
+    .table-actions,
+    .btn-icon-action,
+    .btn,
+    button,
+    .filter-toggle,
+    .filter-form,
+    .filter-bar,
+    .page-header > div:last-child,
+    .modal,
+    #sidebarBackdrop,
+    .topbar-toggle,
+    .topbar-notif,
+    .app-footer {
+        display: none !important;
+    }
+    body {
+        background: #fff !important;
+    }
+    .main-content {
+        width: 100% !important;
+        padding: 0 !important;
+    }
+    .app-wrapper {
+        display: block !important;
+    }
+    .card,
+    .laporan-filter-wrapper,
+    .table-responsive,
+    .stat-card {
+        border: 1px solid #ddd !important;
+        box-shadow: none !important;
+    }
+    .laporan-filter-wrapper {
+        padding: 1rem !important;
+        margin-bottom: 1rem !important;
+    }
+    .table thead th {
+        background: #f1f5f9 !important;
+        -webkit-print-color-adjust: exact !important;
+        print-color-adjust: exact !important;
+    }
+    .badge {
+        border: 1px solid #999 !important;
+        background: transparent !important;
+        color: #333 !important;
+    }
+}
+
+/* ================================================================
+   === MD DESIGN SYSTEM — MOBILE & TABLET RESPONSIVE OVERRIDES ===
+   ================================================================
+   (Breakpoint: ≤991px, ≤767px, ≤575px)
+   ================================================================ */
+
+@media (max-width: 991.98px) {
+    /* Rule MD: mobile padding horizontal 16-24px — ambil tengahnya 18px */
+    body .main-content {
+        padding: 1.05rem 1.125rem 9rem !important;  /* bottom 9rem = bottom nav 70px + md-fab + safe-area */
+    }
+
+    /* HANYA MOBILE & TABLET: Bottom Navigation + FAB AKTIF
+       (Desktop ≥992px OFF karena punya sidebar) */
+    .md-bottom-nav { display: flex !important; }
+    .md-fab       { display: flex !important; }
+
+    /* MD Page Header kompak mobile */
+    .md-page-header {
+        padding: 1.25rem 0 1rem !important;
+        gap: 0.75rem !important;
+    }
+    .md-page-header__title { font-size: 1.3rem !important; }
+    .md-section-header { margin: 1.5rem 0 1rem !important; }
+    .md-section-header__title { font-size: 1rem !important; }
+}
+
+/* TABLET ≤768px — stack lebih longgar, card stat 2 kolom */
+@media (max-width: 767.98px) {
+    body .main-content {
+        padding: 1rem 1.1rem 9.5rem !important;
+    }
+
+    /* Profile hero stack vertikal (avatar di atas kiri, info di kanan) */
+    .md-profile {
+        padding: 1.25rem !important;
+        gap: 1rem !important;
+    }
+    .md-profile__avatar {
+        width: 52px !important;
+        height: 52px !important;
+        font-size: 18px !important;
+    }
+    .md-profile__name { font-size: 1rem !important; }
+    .md-profile__role { font-size: 11.5px !important; }
+    .md-profile__date {
+        font-size: 10.5px !important;
+        padding: 5px 11px !important;
+        margin-top: 8px !important;
+    }
+
+    /* Stat: 2 kolom */
+    .md-stat { padding: 1.25rem !important; }
+    .md-stat__num { font-size: 24px !important; }
+    .md-stat__label { font-size: 11.5px !important; }
+    .md-stat__icon { width: 32px !important; height: 32px !important; font-size: 14px !important; }
+
+    /* CTA section stack vertikal mobile */
+    .md-cta {
+        padding: 1.25rem !important;
+        gap: 1rem !important;
+        align-items: flex-start !important;
+        justify-content: flex-start !important;
+    }
+    .md-cta__btn { width: 100% !important; justify-content: center; }
+
+    /* FAB + Bottom nav tablet precise position */
+    .md-fab {
+        bottom: calc(80px + env(safe-area-inset-bottom,0)) !important;
+        width: calc(100% - 2rem) !important;
+        max-width: 520px;
+    }
+    .md-bottom-nav {
+        height: auto !important;
+        padding-top: 6px !important;
+        padding-bottom: calc(6px + env(safe-area-inset-bottom,0)) !important;
+    }
+}
+
+/* HP KECIL ≤576px — 375px iPhone SE 2022 / Android budget 5" */
+@media (max-width: 575.98px) {
+    body .main-content {
+        padding: 0.9rem 1.05rem 10rem !important;  /* main padding bawah = 10rem utk akomodir 2 layer nav+fab */
+    }
+
+    /* Header typography lebih kecil (Rule MD Hindari font terlalu besar) */
+    .md-page-header { padding: 1rem 0 0.85rem !important; }
+    .md-page-header__title { font-size: 1.18rem !important; }
+    .md-page-header__subtitle { font-size: 13px !important; }
+
+    /* Card header: jika ada 2+ child (info + tombol aksi), tombol full-width di mobile */
+    .md-card__header > div:last-child:not(:first-child) {
+        width: 100%;
+    }
+    .md-card__header > div:last-child:not(:first-child) .md-btn {
+        width: 100%;
+        justify-content: center;
+    }
+
+    /* Lampiran gambar full-width di mobile */
+    .md-thumb-link { max-width: 100% !important; }
+    .md-thumb-img { height: 180px; }
+
+    /* Filter bar wrap vertikal — field 100% width supaya mudah tap */
+    .md-filter-bar {
+        flex-direction: column;
+        align-items: stretch !important;
+        gap: 0.85rem !important;
+        padding: 0.9rem 0 0.2rem !important;
+    }
+    .md-filter-bar__group {
+        flex-direction: row;
+        flex-wrap: wrap;
+        gap: 0.65rem !important;
+    }
+    .md-filter-bar .md-label-group,
+    .md-filter-bar .md-select { min-width: 0 !important; width: 100%; flex: 1 1 140px; }
+    .md-filter-bar__actions {
+        flex-direction: row-reverse;
+        justify-content: space-between;
+        align-items: stretch !important;
+    }
+    .md-filter-bar__actions .md-btn {
+        flex: 1 1 auto;
+        width: 100%;
+        min-height: 46px !important;
+    }
+
+    /* Profile card tight compact */
+    .md-profile { padding: 1.1rem !important; }
+    .md-profile__avatar {
+        width: 48px !important; height: 48px !important;
+        font-size: 17px !important;
+    }
+    .md-profile__name { font-size: 0.95rem !important; }
+    .md-profile__role { font-size: 11px !important; }
+    .md-profile__date { margin-top: 7px !important; font-size: 10px !important; padding: 5px 10px !important; }
+
+    /* Stat 2 kolom dengan padding ketat */
+    .md-stat { padding: 1.1rem !important; }
+    .md-stat__num { font-size: 22px !important; letter-spacing: -0.025em; }
+    .md-stat__label { font-size: 11px !important; }
+    .md-stat__chip { font-size: 10px !important; padding: 2px 8px !important; }
+    .md-stat__bar { height: 5px !important; }
+
+    /* CTA compact */
+    .md-cta { padding: 1.1rem !important; }
+    .md-cta__icon {
+        width: 42px !important; height: 42px !important;
+        font-size: 16px !important;
+    }
+    .md-cta__title { font-size: 14px !important; }
+    .md-cta__sub { font-size: 11.5px !important; }
+    .md-cta__btn { padding: 8px 14px !important; font-size: 12.5px !important; min-height: 42px; }
+
+    /* List row item tight  */
+    .md-list__item {
+        padding: 1rem 1.1rem !important;
+        gap: 0.9rem !important;
+    }
+    .md-list__icon {
+        width: 36px !important; height: 36px !important;
+        font-size: 14.5px !important;
+    }
+    .md-list__title { font-size: 14px !important; }
+    .md-list__desc { font-size: 11.5px !important; -webkit-line-clamp: 3 !important; }
+    .md-list__trailing-date {
+        min-width: 48px !important;
+        padding: 7px 3px !important;
+    }
+    .md-list__trailing-day { font-size: 15.5px !important; }
+    .md-list__trailing-month { font-size: 8.5px !important; }
+    .md-btn-icon {
+        width: 32px !important; height: 32px !important;
+        font-size: 13.5px !important;
+    }
+
+    /* MD Empty state tighter */
+    .md-empty { padding: 2.5rem 1.1rem !important; }
+    .md-empty__icon {
+        width: 70px !important; height: 70px !important;
+        font-size: 28px !important;
+        margin-bottom: 1.25rem !important;
+    }
+    .md-empty__title { font-size: 15.5px !important; }
+    .md-empty__desc { font-size: 12.5px !important; margin-bottom: 1.25rem !important; }
+
+    /* MD Alert compact */
+    .md-alert { padding: 1rem !important; gap: 0.8rem !important; }
+    .md-alert__icon {
+        width: 34px !important; height: 34px !important;
+        font-size: 16px !important;
+    }
+    .md-alert__title { font-size: 14px !important; }
+    .md-alert__text { font-size: 12.5px !important; }
+    .md-alert__actions { margin-top: 0.65rem !important; }
+    .md-alert__actions .btn,
+    .md-alert__actions .md-btn {
+        padding: 6px 12px !important;
+        font-size: 12px !important;
+        min-height: 38px;
+    }
+
+    /* MD Modal — lebar penuh minus 1.2rem, body lebih kecil */
+    .md-modal .modal-dialog {
+        width: calc(100% - 1.2rem) !important;
+        margin: 0.9rem auto !important;
+        max-width: 520px;
+    }
+    .md-modal .modal-header { padding: 1.05rem 1.1rem 0.75rem !important; gap: 0.8rem !important; }
+    .md-modal__icon { width: 40px !important; height: 40px !important; font-size: 16px !important; }
+    .md-modal__title { font-size: 16px !important; }
+    .md-modal__subtitle { font-size: 11.5px !important; }
+    .md-modal .modal-body { padding: 1.05rem 1.1rem !important; }
+    .md-modal .modal-footer { padding: 0.85rem 1.1rem !important; }
+    .md-label { font-size: 11.5px !important; margin-bottom: 5px !important; }
+    .md-field { margin-bottom: 12px !important; }
+    .md-input, .md-select, .md-textarea { padding: 10px 12px !important; }
+    .md-input--lg, .md-select--lg { padding: 12px !important; font-size: 14px !important; min-height: 46px !important; }
+    .md-textarea--lg { padding: 12px !important; font-size: 14px !important; min-height: 100px !important; }
+    .md-hint { font-size: 10.5px !important; margin-top: 5px !important; }
+    .md-btn { padding: 9px 16px !important; font-size: 13px !important; }
+    .md-btn--lg { padding: 12px 22px !important; font-size: 14px !important; min-height: 46px !important; }
+    .md-form-tip { padding: 0.85rem !important; gap: 0.75rem !important; }
+    .md-form-tip__icon {
+        width: 26px !important; height: 26px !important;
+        font-size: 12px !important;
+    }
+    .md-form-tip__text { font-size: 11.5px !important; }
+
+    /* FAB + Bottom nav TIGHT presisi iPhone SE 375px */
+    .md-fab {
+        bottom: calc(78px + env(safe-area-inset-bottom,0)) !important;
+        width: calc(100% - 1.6rem) !important;
+    }
+    .md-fab__inner {
+        padding: 11px 14px 11px 12px !important;
+        gap: 0.7rem !important;
+    }
+    .md-fab__icon { width: 32px !important; height: 32px !important; font-size: 14.5px !important; }
+    .md-fab__title { font-size: 13px !important; }
+    .md-fab__sub { font-size: 10.5px !important; }
+    .md-fab__arrow { width: 28px !important; height: 28px !important; font-size: 12.5px !important; }
+
+    .md-bottom-nav__item {
+        font-size: 10px !important;
+        gap: 2px !important;
+        padding: 5px 3px 3px !important;
+    }
+    .md-bottom-nav__item i { font-size: 15.5px !important; }
+    .md-bottom-nav { gap: 2px !important; }
+}
+
+/* DESKTOP ≥992px: sembunyikan Bottom Nav + FAB */
+@media (min-width: 992px) {
+    .md-bottom-nav,
+    .md-fab { display: none !important; }
+
+    /* Desktop typography balance (Rule MD Hindari font terlalu besar) */
+    .md-page-header__title { font-size: 1.4rem !important; }
+    .md-section-header__title { font-size: 1.05rem !important; }
+    .md-stat-grid--featured { max-width: none !important; }
+    .md-list,
+    .md-card,
+    .md-cta,
+    .md-profile,
+    .md-empty,
+    .md-stat {
+        transition: box-shadow 200ms ease, transform 200ms ease, border-color 200ms ease;
+    }
+}
+
+/* END — MD Design System responsive */

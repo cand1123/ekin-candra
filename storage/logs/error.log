@@ -1,0 +1,2 @@
+[18-Oct-2026 21:44:46 Asia/Jakarta] PHP Warning:  mysqli::__construct(): php_network_getaddresses: getaddrinfo failed: No such host is known.  in C:\laragon\www\asn-candra\app\Config\database.php on line 29
+[18-Oct-2026 21:44:46 Asia/Jakarta] PHP Warning:  mysqli::__construct(): (HY000/2002): php_network_getaddresses: getaddrinfo failed: No such host is known.  in C:\laragon\www\asn-candra\app\Config\database.php on line 29
