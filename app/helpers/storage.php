@@ -68,13 +68,98 @@ function asn_supabase_request($method, $path, $body, $contentType, $extraHeaders
     return [$code, $response === false ? '' : $response];
 }
 
+function asn_storage_last_error($value = null)
+{
+    static $error = '';
+    if (func_num_args() > 0) {
+        $error = trim((string)$value);
+    }
+    return $error;
+}
+
+function asn_storage_error_text($response, $code)
+{
+    $data = json_decode((string)$response, true);
+    $message = is_array($data) ? (string)($data['message'] ?? $data['error'] ?? '') : '';
+    $message = trim(preg_replace('/\s+/', ' ', $message));
+    if ($message === '') {
+        return 'Penyimpanan foto menolak unggahan (HTTP ' . (int)$code . ').';
+    }
+    if (strlen($message) > 160) {
+        $message = substr($message, 0, 157) . '...';
+    }
+    return $message;
+}
+
+function asn_storage_bucket_id()
+{
+    $bucket = asn_storage_bucket();
+    if (!preg_match('/^[a-z0-9][a-z0-9_-]{0,63}$/', $bucket)) {
+        return 'bukti';
+    }
+    return $bucket;
+}
+
+function asn_storage_ensure_via_sql()
+{
+    if (!function_exists('asn_pg_connect')) {
+        return false;
+    }
+    $db = asn_pg_connect();
+    if (!$db) {
+        asn_storage_last_error('Koneksi database untuk menyiapkan penyimpanan foto tidak tersedia.');
+        return false;
+    }
+
+    $bucket = asn_storage_bucket_id();
+    $literal = "'" . str_replace("'", "''", $bucket) . "'";
+    $inserted = @pg_query(
+        $db,
+        "INSERT INTO storage.buckets (id, name, public, file_size_limit, allowed_mime_types)
+         VALUES ({$literal}, {$literal}, true, 5242880, ARRAY['image/jpeg','image/png']::text[])
+         ON CONFLICT (id) DO UPDATE
+         SET public = true"
+    );
+    if ($inserted === false) {
+        asn_storage_last_error('Bucket penyimpanan foto tidak dapat disiapkan.');
+        return false;
+    }
+
+    $slug = preg_replace('/[^a-z0-9_]/', '_', $bucket);
+    $policies = [
+        'asn_' . $slug . '_select' => "CREATE POLICY asn_{$slug}_select ON storage.objects FOR SELECT TO public USING (bucket_id = {$literal})",
+        'asn_' . $slug . '_insert' => "CREATE POLICY asn_{$slug}_insert ON storage.objects FOR INSERT TO anon, authenticated WITH CHECK (bucket_id = {$literal})",
+        'asn_' . $slug . '_update' => "CREATE POLICY asn_{$slug}_update ON storage.objects FOR UPDATE TO anon, authenticated USING (bucket_id = {$literal}) WITH CHECK (bucket_id = {$literal})",
+        'asn_' . $slug . '_delete' => "CREATE POLICY asn_{$slug}_delete ON storage.objects FOR DELETE TO anon, authenticated USING (bucket_id = {$literal})",
+    ];
+    foreach ($policies as $name => $sql) {
+        $exists = @pg_query_params(
+            $db,
+            "SELECT 1
+             FROM pg_policy p
+             JOIN pg_class c ON c.oid = p.polrelid
+             JOIN pg_namespace n ON n.oid = c.relnamespace
+             WHERE n.nspname = 'storage' AND c.relname = 'objects' AND p.polname = $1",
+            [$name]
+        );
+        if ($exists && pg_num_rows($exists) > 0) {
+            continue;
+        }
+        if (@pg_query($db, $sql) === false) {
+            asn_storage_last_error('Izin penyimpanan foto tidak dapat disiapkan.');
+            return false;
+        }
+    }
+    return true;
+}
+
 function asn_supabase_ensure_bucket()
 {
     static $ready = false;
     if ($ready) {
         return true;
     }
-    $bucket = asn_storage_bucket();
+    $bucket = asn_storage_bucket_id();
     [$code] = asn_supabase_request(
         'POST',
         '/storage/v1/bucket',
@@ -82,10 +167,16 @@ function asn_supabase_ensure_bucket()
             'id' => $bucket,
             'name' => $bucket,
             'public' => true,
+            'file_size_limit' => 5242880,
+            'allowed_mime_types' => ['image/jpeg', 'image/png'],
         ]),
         'application/json'
     );
-    $ready = ($code >= 200 && $code < 300) || $code === 409;
+    if (($code >= 200 && $code < 300) || $code === 409) {
+        $ready = true;
+        return true;
+    }
+    $ready = asn_storage_ensure_via_sql();
     return $ready;
 }
 
@@ -110,14 +201,16 @@ function asn_store_upload($tmpPath, $relativePath, $mime)
     }
 
     if (asn_use_remote_storage()) {
+        asn_storage_last_error('');
         asn_supabase_ensure_bucket();
-        $bucket = asn_storage_bucket();
+        $bucket = asn_storage_bucket_id();
         $object = asn_encode_object_path($relativePath);
         $body = file_get_contents($tmpPath);
         if ($body === false) {
+            asn_storage_last_error('Berkas sementara tidak dapat dibaca.');
             return false;
         }
-        [$code] = asn_supabase_request(
+        [$code, $response] = asn_supabase_request(
             'POST',
             '/storage/v1/object/' . rawurlencode($bucket) . '/' . $object,
             $body,
@@ -126,7 +219,7 @@ function asn_store_upload($tmpPath, $relativePath, $mime)
         );
         if ($code === 404 || $code === 400) {
             asn_supabase_ensure_bucket();
-            [$code] = asn_supabase_request(
+            [$code, $response] = asn_supabase_request(
                 'POST',
                 '/storage/v1/object/' . rawurlencode($bucket) . '/' . $object,
                 $body,
@@ -135,8 +228,10 @@ function asn_store_upload($tmpPath, $relativePath, $mime)
             );
         }
         if ($code < 200 || $code >= 300) {
+            asn_storage_last_error(asn_storage_error_text($response, $code));
             return false;
         }
+        asn_storage_last_error('');
         return asn_supabase_url() . '/storage/v1/object/public/' . rawurlencode($bucket) . '/' . $object;
     }
 
