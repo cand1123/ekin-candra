@@ -4,27 +4,41 @@
  * atau ke Supabase Storage saat berjalan di Vercel.
  */
 
-function asn_supabase_key()
+function asn_storage_is_local()
 {
-    $fallback = '';
+    if (getenv('VERCEL') === '1' || (isset($_SERVER['VERCEL']) && (string)$_SERVER['VERCEL'] === '1')) {
+        return false;
+    }
+    $host = strtolower((string)($_SERVER['HTTP_HOST'] ?? ''));
+    return $host === ''
+        || $host === 'localhost'
+        || strpos($host, 'localhost:') === 0
+        || strpos($host, '127.0.0.1') === 0
+        || strpos($host, '192.168.') === 0
+        || strpos($host, '10.') === 0
+        || substr($host, -5) === '.test'
+        || substr($host, -10) === '.localhost';
+}
+
+function asn_supabase_secret_key()
+{
     foreach (['SUPABASE_SECRET_KEY', 'SUPABASE_SERVICE_ROLE_KEY'] as $name) {
         $key = getenv($name);
         if (!is_string($key)) {
             continue;
         }
         $key = trim($key);
-        if ($key === '') {
-            continue;
-        }
-        if (strncmp($key, 'sb_publishable_', 16) === 0) {
-            if ($fallback === '') {
-                $fallback = $key;
-            }
+        if ($key === '' || strncmp($key, 'sb_publishable_', 16) === 0) {
             continue;
         }
         return $key;
     }
-    return $fallback;
+    return '';
+}
+
+function asn_supabase_key()
+{
+    return asn_supabase_secret_key();
 }
 
 function asn_supabase_url()
@@ -53,10 +67,26 @@ function asn_use_remote_storage()
     return !is_dir($probe) || !is_writable($probe);
 }
 
+function asn_curl_apply_tls($ch)
+{
+    if (asn_storage_is_local()) {
+        curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
+        curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, false);
+        return;
+    }
+    curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, true);
+    curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, 2);
+}
+
 function asn_supabase_request($method, $path, $body, $contentType, $extraHeaders = [])
 {
     $url = asn_supabase_url() . $path;
-    $key = asn_supabase_key();
+    $key = asn_supabase_secret_key();
+    if ($key === '') {
+        asn_storage_last_error('SUPABASE_SECRET_KEY tidak valid. Isi secret key (sb_secret_...), bukan publishable key.');
+        return [0, ''];
+    }
+
     $headers = [
         'Authorization: Bearer ' . $key,
         'apikey: ' . $key,
@@ -69,17 +99,34 @@ function asn_supabase_request($method, $path, $body, $contentType, $extraHeaders
     }
 
     $ch = curl_init($url);
+    if ($ch === false) {
+        asn_storage_last_error('cURL tidak dapat diinisialisasi.');
+        return [0, ''];
+    }
+
     curl_setopt_array($ch, [
         CURLOPT_CUSTOMREQUEST => $method,
         CURLOPT_RETURNTRANSFER => true,
         CURLOPT_HTTPHEADER => $headers,
         CURLOPT_POSTFIELDS => $body,
         CURLOPT_TIMEOUT => 30,
+        CURLOPT_CONNECTTIMEOUT => 15,
     ]);
+    asn_curl_apply_tls($ch);
+
     $response = curl_exec($ch);
+    $errno = curl_errno($ch);
+    $error = curl_error($ch);
     $code = (int)curl_getinfo($ch, CURLINFO_HTTP_CODE);
     curl_close($ch);
-    return [$code, $response === false ? '' : $response];
+
+    if ($errno !== 0 || $response === false) {
+        $detail = $error !== '' ? $error : 'koneksi terputus sebelum ada respons';
+        asn_storage_last_error('Koneksi ke penyimpanan foto gagal (HTTP 0 / cURL ' . $errno . '): ' . $detail);
+        return [0, ''];
+    }
+
+    return [$code, $response];
 }
 
 function asn_storage_last_error($value = null)
@@ -96,6 +143,13 @@ function asn_storage_error_text($response, $code)
     $data = json_decode((string)$response, true);
     $message = is_array($data) ? (string)($data['message'] ?? $data['error'] ?? '') : '';
     $message = trim(preg_replace('/\s+/', ' ', $message));
+    if ((int)$code === 0) {
+        $stored = asn_storage_last_error();
+        if ($stored !== '') {
+            return $stored;
+        }
+        return 'Koneksi ke penyimpanan foto gagal (HTTP 0). Periksa jaringan atau sertifikat SSL Laragon.';
+    }
     if ($message === '') {
         return 'Penyimpanan foto menolak unggahan (HTTP ' . (int)$code . ').';
     }
@@ -294,16 +348,22 @@ function asn_read_stored_bytes($path)
     }
     if (preg_match('#^https?://#i', $path)) {
         $ch = curl_init($path);
+        if ($ch === false) {
+            return null;
+        }
         curl_setopt_array($ch, [
             CURLOPT_RETURNTRANSFER => true,
             CURLOPT_FOLLOWLOCATION => true,
             CURLOPT_TIMEOUT => 20,
+            CURLOPT_CONNECTTIMEOUT => 15,
         ]);
+        asn_curl_apply_tls($ch);
         $data = curl_exec($ch);
+        $errno = curl_errno($ch);
         $code = (int)curl_getinfo($ch, CURLINFO_HTTP_CODE);
         $type = (string)curl_getinfo($ch, CURLINFO_CONTENT_TYPE);
         curl_close($ch);
-        if ($data === false || $code >= 400) {
+        if ($errno !== 0 || $data === false || $code >= 400) {
             return null;
         }
         $mime = $type !== '' ? trim(explode(';', $type)[0]) : 'image/jpeg';
