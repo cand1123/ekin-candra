@@ -197,7 +197,9 @@ try {
                 $namaBaru = 'bukti_' . $newId . '_' . $uid . '_' . date('YmdHis') . '_' . $i . '_' . uniqid('', true) . '.' . $ext;
                 $pathRel = asn_store_upload($tmp, 'uploads/bukti/' . $namaBaru, $detected);
                 if ($pathRel === false) {
+                    $detail = asn_storage_last_error();
                     $uploadErrors[] = '"' . htmlspecialchars($orig) . '": gagal menyimpan berkas.'
+                        . ($detail !== '' ? ' ' . $detail : '')
                         . (asn_use_remote_storage() ? '' : ' Folder unggahan tidak dapat ditulis.');
                     continue;
                 }
