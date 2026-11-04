@@ -146,7 +146,9 @@ try {
         $total = count($cleanNames);
 
         $errMsgs = parse_upload_errors($cleanErrors);
-        $uploadErrors = array_merge($uploadErrors, $errMsgs);
+        if (!empty($errMsgs)) {
+            throw new Exception('Gagal mengunggah berkas: ' . implode(' | ', $errMsgs));
+        }
 
         $stmtCount = $mysqli->prepare('SELECT COUNT(*) FROM bukti_kegiatan WHERE laporan_id=?');
         $stmtCount->bind_param('i', $newId);
@@ -156,82 +158,97 @@ try {
         $stmtCount->close();
         $allowedTotal = 5 - $currCount;
         if ($allowedTotal <= 0) {
-            $uploadErrors[] = 'Maksimal 5 foto per laporan, tidak dapat menambah lagi.';
-        } else {
-            for ($i = 0; $i < $total; $i++) {
-                if ($uploadedCount >= $allowedTotal) {
-                    $uploadErrors[] = 'Sebagian berkas diabaikan: sudah mencapai batas maksimal 5 foto.';
-                    break;
-                }
-                if ($cleanErrors[$i] !== UPLOAD_ERR_OK) continue;
+            throw new Exception('Maksimal 5 foto per laporan, tidak dapat menambah bukti lagi.');
+        }
 
-                $tmp = $cleanTmp[$i];
-                $orig = $cleanNames[$i];
-                $size = $cleanSizes[$i];
-
-                if (!is_uploaded_file($tmp)) {
-                    $uploadErrors[] = '"' . htmlspecialchars($orig) . '": berkas bukan hasil unggah yang sah.';
-                    continue;
-                }
-                if ($size <= 0) {
-                    $uploadErrors[] = '"' . htmlspecialchars($orig) . '": berkas kosong.';
-                    continue;
-                }
-                if ($size > 5 * 1024 * 1024) {
-                    $uploadErrors[] = '"' . htmlspecialchars($orig) . '": ukuran melebihi batas 5 MB (' . round($size / 1048576, 2) . ' MB).';
-                    continue;
-                }
-
-                $extRaw = strtolower(pathinfo($orig, PATHINFO_EXTENSION));
-                $detected = detect_image_type($tmp, $orig);
-                if (!$detected || !in_array($detected, ['image/jpeg', 'image/png'], true)) {
-                    $uploadErrors[] = '"' . htmlspecialchars($orig) . '": format berkas tidak didukung (hanya JPG/PNG). Terdeteksi: ' . ($detected ?: 'tidak dikenal');
-                    continue;
-                }
-                if ($extRaw && !isset($allowedExt[$extRaw])) {
-                    $uploadErrors[] = '"' . htmlspecialchars($orig) . '": ekstensi berkas tidak diizinkan (hanya .jpg/.jpeg/.png).';
-                    continue;
-                }
-
-                $ext = $detected === 'image/png' ? 'png' : 'jpg';
-                $namaBaru = 'bukti_' . $newId . '_' . $uid . '_' . date('YmdHis') . '_' . $i . '_' . uniqid('', true) . '.' . $ext;
-                $pathRel = asn_store_upload($tmp, 'uploads/bukti/' . $namaBaru, $detected);
-                if ($pathRel === false) {
-                    $detail = asn_storage_last_error();
-                    $uploadErrors[] = '"' . htmlspecialchars($orig) . '": gagal menyimpan berkas.'
-                        . ($detail !== '' ? ' ' . $detail : '')
-                        . (asn_use_remote_storage() ? '' : ' Folder unggahan tidak dapat ditulis.');
-                    continue;
-                }
-
-                if ($BK_HAS_USER_ID && $BK_HAS_META) {
-                    $stmtI = $mysqli->prepare('INSERT INTO bukti_kegiatan (laporan_id, user_id, nama_file, path_file, mime_type, ukuran_file) VALUES (?,?,?,?,?,?)');
-                    if (!$stmtI) {
-                        throw new Exception('Gagal menyiapkan perintah simpan bukti (skema baru): ' . $mysqli->error);
-                    }
-                    $stmtI->bind_param('iisssi', $newId, $uid, $orig, $pathRel, $detected, $size);
-                } elseif ($BK_HAS_USER_ID) {
-                    $stmtI = $mysqli->prepare('INSERT INTO bukti_kegiatan (laporan_id, user_id, nama_file, path_file) VALUES (?,?,?,?)');
-                    if (!$stmtI) {
-                        throw new Exception('Gagal menyiapkan perintah simpan bukti (skema menengah): ' . $mysqli->error);
-                    }
-                    $stmtI->bind_param('iiss', $newId, $uid, $orig, $pathRel);
-                } else {
-                    $stmtI = $mysqli->prepare('INSERT INTO bukti_kegiatan (laporan_id, nama_file, path_file) VALUES (?,?,?)');
-                    if (!$stmtI) {
-                        throw new Exception('Gagal menyiapkan perintah simpan bukti (skema lama): ' . $mysqli->error);
-                    }
-                    $stmtI->bind_param('iss', $newId, $orig, $pathRel);
-                }
-
-                if (!$stmtI->execute()) {
-                    asn_delete_stored($pathRel);
-                    $stmtI->close();
-                    throw new Exception('Gagal menyimpan metadata bukti: ' . $mysqli->error);
-                }
-                $stmtI->close();
-                $uploadedCount++;
+        $uploadedPaths = []; // Track paths for cleanup if error occurs
+        for ($i = 0; $i < $total; $i++) {
+            if ($uploadedCount >= $allowedTotal) {
+                break;
             }
+            if ($cleanErrors[$i] !== UPLOAD_ERR_OK) continue;
+
+            $tmp = $cleanTmp[$i];
+            $orig = $cleanNames[$i];
+            $size = $cleanSizes[$i];
+
+            if (!is_uploaded_file($tmp)) {
+                foreach ($uploadedPaths as $p) { asn_delete_stored($p); }
+                throw new Exception('Berkas "' . htmlspecialchars($orig) . '" bukan hasil unggah yang sah.');
+            }
+            if ($size <= 0) {
+                foreach ($uploadedPaths as $p) { asn_delete_stored($p); }
+                throw new Exception('Berkas "' . htmlspecialchars($orig) . '" kosong.');
+            }
+            if ($size > 5 * 1024 * 1024) {
+                foreach ($uploadedPaths as $p) { asn_delete_stored($p); }
+                throw new Exception('Ukuran berkas "' . htmlspecialchars($orig) . '" melebihi batas 5 MB (' . round($size / 1048576, 2) . ' MB).');
+            }
+
+            $extRaw = strtolower(pathinfo($orig, PATHINFO_EXTENSION));
+            $detected = detect_image_type($tmp, $orig);
+            if (!$detected || !in_array($detected, ['image/jpeg', 'image/png'], true)) {
+                foreach ($uploadedPaths as $p) { asn_delete_stored($p); }
+                throw new Exception('Format berkas "' . htmlspecialchars($orig) . '" tidak didukung (hanya JPG/PNG).');
+            }
+            if ($extRaw && !isset($allowedExt[$extRaw])) {
+                foreach ($uploadedPaths as $p) { asn_delete_stored($p); }
+                throw new Exception('Ekstensi berkas "' . htmlspecialchars($orig) . '" tidak diizinkan (hanya .jpg/.jpeg/.png).');
+            }
+
+            $ext = $detected === 'image/png' ? 'png' : 'jpg';
+            $namaBaru = 'bukti_' . $newId . '_' . $uid . '_' . date('YmdHis') . '_' . $i . '_' . uniqid('', true) . '.' . $ext;
+
+            // 1. Memanggil bucket 'bukti'
+            // 2. Menggunakan opsi upsert: true
+            // 3. Sertakan contentType secara eksplisit (default ke 'image/jpeg')
+            $contentType = !empty($detected) ? $detected : 'image/jpeg';
+            $pathRel = asn_store_upload($tmp, 'uploads/bukti/' . $namaBaru, $contentType);
+
+            // 4. Tambahkan error handling yang jelas: jika terjadi error dari Supabase Storage, batalkan proses simpan data laporan
+            if ($pathRel === false) {
+                foreach ($uploadedPaths as $p) {
+                    asn_delete_stored($p);
+                }
+                $detail = asn_storage_last_error();
+                $errText = 'Gagal mengunggah berkas bukti "' . htmlspecialchars($orig) . '" ke Supabase Storage. '
+                    . ($detail !== '' ? $detail : 'Terjadi kendala pada layanan penyimpanan cloud.')
+                    . ' Proses simpan data laporan dibatalkan.';
+                throw new Exception($errText);
+            }
+
+            $uploadedPaths[] = $pathRel;
+
+            if ($BK_HAS_USER_ID && $BK_HAS_META) {
+                $stmtI = $mysqli->prepare('INSERT INTO bukti_kegiatan (laporan_id, user_id, nama_file, path_file, mime_type, ukuran_file) VALUES (?,?,?,?,?,?)');
+                if (!$stmtI) {
+                    foreach ($uploadedPaths as $p) { asn_delete_stored($p); }
+                    throw new Exception('Gagal menyiapkan perintah simpan bukti (skema baru): ' . $mysqli->error);
+                }
+                $stmtI->bind_param('iisssi', $newId, $uid, $orig, $pathRel, $contentType, $size);
+            } elseif ($BK_HAS_USER_ID) {
+                $stmtI = $mysqli->prepare('INSERT INTO bukti_kegiatan (laporan_id, user_id, nama_file, path_file) VALUES (?,?,?,?)');
+                if (!$stmtI) {
+                    foreach ($uploadedPaths as $p) { asn_delete_stored($p); }
+                    throw new Exception('Gagal menyiapkan perintah simpan bukti (skema menengah): ' . $mysqli->error);
+                }
+                $stmtI->bind_param('iiss', $newId, $uid, $orig, $pathRel);
+            } else {
+                $stmtI = $mysqli->prepare('INSERT INTO bukti_kegiatan (laporan_id, nama_file, path_file) VALUES (?,?,?)');
+                if (!$stmtI) {
+                    foreach ($uploadedPaths as $p) { asn_delete_stored($p); }
+                    throw new Exception('Gagal menyiapkan perintah simpan bukti (skema lama): ' . $mysqli->error);
+                }
+                $stmtI->bind_param('iss', $newId, $orig, $pathRel);
+            }
+
+            if (!$stmtI->execute()) {
+                foreach ($uploadedPaths as $p) { asn_delete_stored($p); }
+                $stmtI->close();
+                throw new Exception('Gagal menyimpan metadata bukti: ' . $mysqli->error);
+            }
+            $stmtI->close();
+            $uploadedCount++;
         }
     }
 
